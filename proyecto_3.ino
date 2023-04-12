@@ -16,7 +16,7 @@ const char* SUBSCRIBE_TOPIC_1 = "ucb/2756a/control";        // ESP32 SUBSCRIBE_T
 const char* PUBLISH_TOPIC = "ucb/890e4/publish"; 
 const char* SUBSCRIBE_TOPIC_2 = "ucb/2756a/on_off"; 
 
-bool CONTROL_MANUAL=false;
+bool MANUAL_CONTROL=false;
 
 WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
@@ -37,9 +37,9 @@ void callback(const char* topic, byte* payload, unsigned int lenght) {
   if (String(topic) == SUBSCRIBE_TOPIC_1) {
     Serial.println("Message from topic " + String(topic) + ":" + message);
     if (message == "1") {
-      CONTROL_MANUAL=true;
+      MANUAL_CONTROL=true;
     } else {
-      CONTROL_MANUAL=false;
+      MANUAL_CONTROL=false;
     }
   }
   
@@ -61,7 +61,7 @@ boolean mqttClientConnect() {
   return mqttClient.connected();
 }
 
-void prenderLed(int valor){
+void controlLed(int valor){
   if(valor>=2000){
     digitalWrite(ledPin, HIGH);
   } else {
@@ -98,7 +98,7 @@ unsigned long previousPublishMillis = 0;
 
 void loop() {
   sensorValue = analogRead(sensorPin);
-  Serial.print("Lectura del sensor LDR: ");
+  Serial.print("LDR sensor reading: ");
   Serial.println(sensorValue);
   unsigned long now = millis();
   if (!mqttClient.connected()) {
@@ -118,10 +118,10 @@ void loop() {
       String message = "Hello from ESP32! " + String(sensorValue);
       
       mqttClient.publish(PUBLISH_TOPIC, message.c_str());
-      Serial.print("Control manual: ");
-      Serial.println(CONTROL_MANUAL);
-      if(CONTROL_MANUAL==false){
-        prenderLed(sensorValue);
+      Serial.print("Manual Control Value: ");
+      Serial.println(MANUAL_CONTROL);
+      if(MANUAL_CONTROL==false){
+        controlLed(sensorValue);
       }
 
       
