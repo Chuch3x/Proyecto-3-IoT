@@ -69,10 +69,7 @@ void controlLed(int valor){
   }
 }
 
-void setup() {
-  pinMode(ledPin, OUTPUT);
-  // Inicializa el puerto serie
-  Serial.begin(9600);
+void setWifiConnection() {
   Serial.println("Connecting to " + String(WIFI_SSID));
   WiFi.begin(WIFI_SSID, WIFI_PASS);
   while (WiFi.status() != WL_CONNECTED) {
@@ -83,9 +80,15 @@ void setup() {
   WiFi.begin(WIFI_SSID, WIFI_PASS);
   if (WiFi.waitForConnectResult() != WL_CONNECTED) {
     Serial.println("Can't connect to " + String(WIFI_SSID));
-    while (1)  delay(200);  // change this line
+    delay(200); 
   }
   Serial.println("Connected to " + String(WIFI_SSID));
+}
+
+void setup() {
+  pinMode(ledPin, OUTPUT);
+  Serial.begin(9600);
+  setWifiConnection();
   //defining the parameters for the mqtt client
   mqttClient.setServer(MQTT_BROKER, MQTT_BROKER_PORT);
   mqttClient.setCallback(callback);
@@ -109,7 +112,6 @@ void loop() {
     }
   }else { // Connected to the MQTT Broker
     mqttClient.loop();
-
     delay(20);
     
     if (now - previousPublishMillis >= 10000) {
@@ -123,8 +125,6 @@ void loop() {
       if(MANUAL_CONTROL==false){
         controlLed(sensorValue);
       }
-
-      
     }
   }
   delay(2000);
