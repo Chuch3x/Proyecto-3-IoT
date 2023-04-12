@@ -5,8 +5,8 @@ int ledPin=33;
 
 // Variable para almacenar la lectura del sensor
 int sensorValue = 0;
-const char* WIFI_SSID = "COMTECO-AP";
-const char* WIFI_PASS = "wificf93";
+const char* WIFI_SSID = "FAMILIA MENDEZ";
+const char* WIFI_PASS = "07151973";
 
 const char* MQTT_BROKER = "broker.hivemq.com";
 const int MQTT_BROKER_PORT = 1883;
@@ -17,6 +17,11 @@ const char* PUBLISH_TOPIC = "ucb/890e4/publish";
 const char* SUBSCRIBE_TOPIC_2 = "ucb/2756a/on_off"; 
 
 bool MANUAL_CONTROL=false;
+
+
+unsigned char counter = 0;
+unsigned long previousConnectMillis = 0;
+unsigned long previousPublishMillis = 0;
 
 WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
@@ -87,6 +92,21 @@ void setWifiConnection() {
   Serial.println("Connected to " + String(WIFI_SSID));
 }
 
+void publishToMQTT(long now){
+  if (now - previousPublishMillis >= 10000) {
+      previousPublishMillis = now;
+
+      String message = "Hello from ESP32! " + String(sensorValue);
+      
+      mqttClient.publish(PUBLISH_TOPIC, message.c_str());
+      Serial.print("Manual Control Value: ");
+      Serial.println(MANUAL_CONTROL);
+      if(MANUAL_CONTROL==false){
+        controlLed(sensorValue);
+      }
+    }
+}
+
 void setup() {
   pinMode(ledPin, OUTPUT);
   Serial.begin(9600);
@@ -95,10 +115,6 @@ void setup() {
   mqttClient.setServer(MQTT_BROKER, MQTT_BROKER_PORT);
   mqttClient.setCallback(callback);
 }
-
-unsigned char counter = 0;
-unsigned long previousConnectMillis = 0;
-unsigned long previousPublishMillis = 0;
 
 void loop() {
   sensorValue = analogRead(sensorPin);
@@ -114,19 +130,8 @@ void loop() {
   }else { // Connected to the MQTT Broker
     mqttClient.loop();
     delay(20);
-    
-    if (now - previousPublishMillis >= 10000) {
-      previousPublishMillis = now;
-
-      String message = "Hello from ESP32! " + String(sensorValue);
-      
-      mqttClient.publish(PUBLISH_TOPIC, message.c_str());
-      Serial.print("Manual Control Value: ");
-      Serial.println(MANUAL_CONTROL);
-      if(MANUAL_CONTROL==false){
-        controlLed(sensorValue);
-      }
-    }
+    publishToMQTT(now);
   }
+  
   delay(2000);
 }
