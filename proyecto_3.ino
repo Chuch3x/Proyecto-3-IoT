@@ -45,16 +45,18 @@ void callback(const char* topic, byte* payload, unsigned int lenght) {
   
 }
 
+void subscriptionToMQTT() {
+    mqttClient.subscribe(SUBSCRIBE_TOPIC_1);
+    mqttClient.subscribe(SUBSCRIBE_TOPIC_2);
+    Serial.println("Subscribed to " + String(SUBSCRIBE_TOPIC_1));
+    Serial.println("Subscribed to " + String(SUBSCRIBE_TOPIC_2));
+}
 
 boolean mqttClientConnect() {
   Serial.println("Connecting to " + String(MQTT_BROKER));
   if (mqttClient.connect(MQTT_CLIENT_ID)) {
     Serial.println("Connected to " + String(MQTT_BROKER));
-      //made on another function the subscription to the mqtt
-    mqttClient.subscribe(SUBSCRIBE_TOPIC_1);
-    mqttClient.subscribe(SUBSCRIBE_TOPIC_2);
-    Serial.println("Subscribed to " + String(SUBSCRIBE_TOPIC_1));
-    Serial.println("Subscribed to " + String(SUBSCRIBE_TOPIC_2));
+    subscriptionToMQTT();
   } else {
     Serial.println("Cant't connecto to " + String(MQTT_BROKER));
   }
@@ -95,7 +97,6 @@ void setup() {
 }
 
 unsigned char counter = 0;
-
 unsigned long previousConnectMillis = 0;
 unsigned long previousPublishMillis = 0;
 
